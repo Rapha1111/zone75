@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZONE 75 | RocherEtoile Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Bebas+Neue&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #f5c518;
+            --cyan: #00d4ff;
+            --dark-bg: #0a0a0a;
+            --darker-bg: #050505;
+            --card-bg: #111111;
+            --text-light: #ffffff;
+            --text-gray: #888888;
+            --red-accent: #ff3333;
+            --purple: #9b59b6;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            overflow-x: hidden;
+        }
+
+        /* NAVIGATION */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+        }
+
+        .logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(245, 197, 24, 0.5);
+            letter-spacing: 3px;
+        }
+
+        .logo span {
+            color: var(--cyan);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--gold);
+            text-shadow: 0 0 15px rgba(245, 197, 24, 0.7);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gold);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="50" font-size="80" fill="rgba(245,197,24,0.03)">75</text></svg>') repeat;
+            background-size: 200px;
+            animation: bgScroll 20s linear infinite;
+        }
+
+        @keyframes bgScroll {
+            0% { background-position: 0 0; }
+            100% { background-position: 200px 200px; }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 12rem;
+            letter-spacing: 20px;
+            color: var(--text-light);
+            text-shadow: 
+                0 0 50px rgba(245, 197, 24, 0.5),
+                0 0 100px rgba(245, 197, 24, 0.3);
+            animation: titleGlow 3s ease-in-out infinite alternate;
+            margin-bottom: 10px;
+        }
+
+        .hero h1 span {
+            color: var(--gold);
+        }
+
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 50px rgba(245, 197, 24, 0.5), 0 0 100px rgba(245, 197, 24, 0.3); }
+            100% { text-shadow: 0 0 80px rgba(245, 197, 24, 0.8), 0 0 150px rgba(245, 197, 24, 0.5); }
+        }
+
+        .hero .tagline {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2rem;
+            color: var(--cyan);
+            letter-spacing: 15px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .hero .studio {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+        }
+
+        .hero .studio span {
+            color: var(--gold);
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 18px 50px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--gold);
+            color: var(--dark-bg);
+        }
+
+        .btn-primary:hover {
+            background: var(--text-light);
+            box-shadow: 0 0 30px rgba(245, 197, 24, 0.8);
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--cyan);
+            border: 2px solid var(--cyan);
+        }
+
+        .btn-secondary:hover {
+            background: var(--cyan);
+            color: var(--dark-bg);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+        }
+
+        /* SECTION STYLES */
+        section {
+            padding: 100px 10%;
+        }
+
+        .section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4rem;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 20px;
+            letter-spacing: 10px;
+            text-shadow: 0 0 30px rgba(245, 197, 24, 0.3);
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-gray);
+            font-size: 1.1rem;
+            margin-bottom: 60px;
+            letter-spacing: 3px;
+        }
+
+        /* PROJET SECTION */
+        #projet {
+            background: linear-gradient(180deg, var(--dark-bg) 0%, var(--darker-bg) 100%);
+        }
+
+        .projet-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .projet-text h3 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2rem;
+            color: var(--cyan);
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+        }
+
+        .projet-text p {
+            color: var(--text-gray);
+            line-height: 1.8;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .projet-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .stat-box {
+            background: var(--card-bg);
+            padding: 30px;
+            border-left: 4px solid var(--gold);
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:hover {
+            transform: translateX(10px);
+            box-shadow: 0 0 30px rgba(245, 197, 24, 0.2);
+        }
+
+        .stat-box h4 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3rem;
+            color: var(--gold);
+        }
+
+        .stat-box p {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .projet-visual {
+            position: relative;
+            height: 500px;
+            background: var(--card-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid var(--gold);
+            overflow: hidden;
+        }
+
+        .projet-visual::before {
+            content: 'ZONE 75';
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 8rem;
+            color: rgba(245, 197, 24, 0.1);
+            position: absolute;
+        }
+
+        .map-overlay {
+            width: 80%;
+            height: 80%;
+            border: 1px solid var(--cyan);
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .map-overlay::after {
+            content: '🗼 PARIS';
+            font-family: 'Oswald', sans-serif;
+            font-size: 2rem;
+            color: var(--cyan);
+            letter-spacing: 5px;
+        }
+
+        /* EQUIPE SECTION */
+        #equipe {
+            background: var(--darker-bg);
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 30px;
+        }
+
+        .team-card {
+            background: var(--card-bg);
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--gold);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--cyan));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .team-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .team-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(245, 197, 24, 0.2);
+        }
+
+        .team-avatar {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--gold), var(--cyan));
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.5rem;
+            color: var(--dark-bg);
+        }
+
+        .team-card h3 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.5rem;
+            color: var(--text-light);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .team-card .role {
+            color: var(--cyan);
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* FEATURES */
+        #features {
+            background: linear-gradient(180deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            padding: 50px 30px;
+            text-align: center;
+            border: 1px solid #222;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .feature-card:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 40px rgba(245, 197, 24, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .feature-card p {
+            color: var(--text-gray);
+            line-height: 1.6;
+        }
+
+        /* RESSOURCES SECTION */
+        #ressources {
+            background: var(--dark-bg);
+        }
+
+        .ressources-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+        }
+
+        .ressource-category {
+            background: var(--card-bg);
+            padding: 40px;
+            border-left: 4px solid var(--cyan);
+        }
+
+        .ressource-category h3 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.5rem;
+            color: var(--cyan);
+            margin-bottom: 25px;
+            letter-spacing: 3px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .ressource-category h3 span {
+            font-size: 1.8rem;
+        }
+
+        .ressource-list {
+            list-style: none;
+        }
+
+        .ressource-list li {
+            padding: 15px 0;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ressource-list li:last-child {
+            border-bottom: none;
+        }
+
+        .ressource-list a {
+            color: var(--gold);
+            text-decoration: none;
+            font-family: 'Oswald', sans-serif;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ressource-list a:hover {
+            color: var(--text-light);
+            text-shadow: 0 0 10px rgba(245, 197, 24, 0.5);
+        }
+
+        .ressource-tag {
+            background: var(--darker-bg);
+            padding: 5px 15px;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+            letter-spacing: 1px;
+        }
+
+        /* TÉLÉCHARGEMENTS */
+        #telechargements {
+            background: linear-gradient(180deg, var(--dark-bg) 0%, #1a1a2e 100%);
+            text-align: center;
+        }
+
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .download-card {
+            background: var(--card-bg);
+            padding: 50px 40px;
+            border: 2px solid #222;
+            transition: all 0.3s ease;
+        }
+
+        .download-card:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 50px rgba(245, 197, 24, 0.2);
+        }
+
+        .download-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .download-card h3 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.8rem;
+            color: var(--text-light);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .download-card p {
+            color: var(--text-gray);
+            margin-bottom: 25px;
+        }
+
+        .download-card .btn {
+            display: inline-block;
+            padding: 15px 40px;
+        }
+
+        /* FOOTER */
+        footer {
+            background: var(--darker-bg);
+            padding: 60px 10%;
+            border-top: 1px solid #222;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-logo {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2rem;
+            color: var(--gold);
+            letter-spacing: 5px;
+        }
+
+        .footer-logo span {
+            color: var(--cyan);
+            font-size: 1rem;
+            display: block;
+            letter-spacing: 3px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: var(--text-gray);
+            text-decoration: none;
+            font-family: 'Oswald', sans-serif;
+            letter-spacing: 2px;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 40px;
+            margin-top: 40px;
+            border-top: 1px solid #222;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .team-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .hero h1 {
+                font-size: 6rem;
+            }
+
+            .projet-content {
+                grid-template-columns: 1fr;
+            }
+
+            .team-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ressources-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .download-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .hero h1 {
+                font-size: 4rem;
+                letter-spacing: 10px;
+            }
+
+            .team-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            .section-title {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NAVIGATION -->
+    <nav>
+        <div class="logo">ZONE<span>75</span></div>
+        <ul class="nav-links">
+            <li><a href="#projet">Projet</a></li>
+            <li><a href="#equipe">Équipe</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#ressources">Ressources</a></li>
+            <li><a href="#telechargements">Télécharger</a></li>
+        </ul>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>ZONE<span>75</span></h1>
+            <p class="tagline">Paris est à vous</p>
+            <p class="studio">Un jeu de <span>RocherEtoile</span></p>
+            <div class="cta-buttons">
+                <a href="#projet" class="btn btn-secondary">Découvrir</a>
+                <a href="#telechargements" class="btn btn-primary">Télécharger</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROJET SECTION -->
+    <section id="projet">
+        <h2 class="section-title">LE PROJET</h2>
+        <p class="section-subtitle">BIENVENUE DANS LE PARIS QUE VOUS N'AVEZ JAMAIS VU</p>
+
+        <div class="projet-content">
+            <div class="projet-text">
+                <h3>🎮 L'EXPÉRIENCE ZONE 75</h3>
+                <p>
+                    <strong>Zone 75</strong> est un jeu d'action en monde ouvert qui transpose l'univers et l'atmosphère de Grand Theft Auto dans les rues de Paris. Explorez une reconstitution immersive de la capitale française, de la Tour Eiffel aux ruelles de Montmartre, en passant par les Champs-Élysées.
+                </p>
+                <p>
+                    Développé par le studio <strong>RocherEtoile</strong>, ce projet ambitieux vous plonge dans une expérience vidéoludique unique où le crime, l'action et l'exploration se mêlent dans un Paris réinventé, sombre et captivant.
+                </p>
+                <p>
+                    Incarnez différents personnages aux destins croisés, accomplissez des missions variées, conduisez des véhicules iconiques français, et découvrez une histoire riche en rebondissements au cœur du 75ème département.
+                </p>
+
+                <div class="projet-stats">
+                    <div class="stat-box">
+                        <h4>20</h4>
+                        <p>Arrondissements à explorer</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>∞</h4>
+                        <p>Possibilités d'action</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>3D</h4>
+                        <p>Environnement immersif</p>
+                    </div>
+                    <div class="stat-box">
+                        <h4>🗼</h4>
+                        <p>Paris authentique</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="projet-visual">
+                <video src="wait_screen.mp4" autoplay muted loop style="position: absolute;top:0;left:0;height:100%;width:100%"></video>
+            </div>
+        </div>
+    </section>
+
+    <!-- EQUIPE SECTION -->
+    <section id="equipe">
+        <h2 class="section-title">L'ÉQUIPE</h2>
+        <p class="section-subtitle">LES CERVEAUX DERRIÈRE ROCHERETOILE STUDIO</p>
+
+        <div class="team-grid">
+            <div class="team-card">
+                <div class="team-avatar">R</div>
+                <h3>RAPHAEL</h3>
+                <p class="role">Lead Developer</p>
+            </div>
+
+            <div class="team-card">
+                <div class="team-avatar">D</div>
+                <h3>DAN</h3>
+                <p class="role">Game Designer</p>
+            </div>
+
+            <div class="team-card">
+                <div class="team-avatar">F</div>
+                <h3>FAIZ</h3>
+                <p class="role">Developer</p>
+            </div>
+
+            <div class="team-card">
+                <div class="team-avatar">M</div>
+                <h3>MELVIN</h3>
+                <p class="role">Level Designer</p>
+            </div>
+
+            <div class="team-card">
+                <div class="team-avatar">H</div>
+                <h3>HUGO</h3>
+                <p class="role">Sound Designer</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section id="features">
+        <h2 class="section-title">FEATURES</h2>
+        <p class="section-subtitle">CE QUI REND ZONE 75 UNIQUE</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🗼</div>
+                <h3>PARIS OPEN WORLD</h3>
+                <p>Explorez une reconstitution fidèle et stylisée de Paris. De Montmartre à la Défense, chaque quartier a sa propre identité.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🚗</div>
+                <h3>VÉHICULES FRANÇAIS</h3>
+                <p>Conduisez des véhicules iconiques inspirés de l'automobile française. Citadines, sportives, motos... le choix est vaste.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎭</div>
+                <h3>HISTOIRE IMMERSIVE</h3>
+                <p>Vivez une intrigue captivante avec des personnages mémorables et des choix qui impactent votre aventure.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎵</div>
+                <h3>BANDE SON ORIGINALE</h3>
+                <p>Une soundtrack générée par IA qui capture l'essence du Paris underground et de la scène musicale française.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>ACTION INTENSE</h3>
+                <p>Missions variées, poursuites effrénées et confrontations palpitantes dans les rues de la capitale.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3>GRAPHISMES 3D</h3>
+                <p>Des environnements 3D générés avec les dernières technologies d'IA pour une immersion totale.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- RESSOURCES SECTION -->
+    <section id="ressources">
+        <h2 class="section-title">RESSOURCES</h2>
+        <p class="section-subtitle">OUTILS ET TECHNOLOGIES UTILISÉS</p>
+
+        <div class="ressources-grid">
+            <div class="ressource-category">
+                <h3><span>💻</span> TECHNOLOGIES DE DÉVELOPPEMENT</h3>
+                <ul class="ressource-list">
+                    <li>
+                        <a href="https://www.python.org/" target="_blank">
+                            🐍 Python
+                        </a>
+                        <span class="ressource-tag">LANGAGE</span>
+                    </li>
+                    <li>
+                        <a href="https://www.panda3d.org/" target="_blank">
+                            🎮 Panda3D
+                        </a>
+                        <span class="ressource-tag">MOTEUR 3D</span>
+                    </li>
+                    <li>
+                        <a href="https://www.panda3d.org/manual/" target="_blank">
+                            📖 Documentation Panda3D
+                        </a>
+                        <span class="ressource-tag">DOCUMENTATION</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="ressource-category">
+                <h3><span>🎨</span> GÉNÉRATION D'ASSETS</h3>
+                <ul class="ressource-list">
+                    <li>
+                        <a href="https://www.meshy.ai/" target="_blank">
+                            🔮 Meshy AI
+                        </a>
+                        <span class="ressource-tag">MODÈLES 3D</span>
+                    </li>
+                    <li>
+                        <a href="https://suno.com/" target="_blank">
+                            🎵 Suno AI
+                        </a>
+                        <span class="ressource-tag">MUSIQUE</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="ressource-category">
+                <h3><span>📚</span> RÉFÉRENCES</h3>
+                <ul class="ressource-list">
+                    <li>
+                        <a href="https://docs.panda3d.org/1.10/python/index" target="_blank">
+                            📘 Panda3D Python API
+                        </a>
+                        <span class="ressource-tag">API</span>
+                    </li>
+                    <li>
+                        <a href="https://github.com/panda3d/panda3d" target="_blank">
+                            🔧 Panda3D GitHub
+                        </a>
+                        <span class="ressource-tag">SOURCE</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="ressource-category">
+                <h3><span>🛠️</span> OUTILS ADDITIONNELS</h3>
+                <ul class="ressource-list">
+                    <li>
+                        <a href="https://www.blender.org/" target="_blank">
+                            🎬 Blender
+                        </a>
+                        <span class="ressource-tag">MODÉLISATION</span>
+                    </li>
+                    <li>
+                        <a href="https://git-scm.com/" target="_blank">
+                            📂 Git
+                        </a>
+                        <span class="ressource-tag">VERSIONING</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- TELECHARGEMENTS SECTION -->
+    <section id="telechargements">
+        <h2 class="section-title">TÉLÉCHARGEMENTS</h2>
+        <p class="section-subtitle">ACCÉDEZ AU PROJET ET À LA DOCUMENTATION</p>
+
+        <div class="download-grid">
+            <div class="download-card">
+                <div class="download-icon">📄</div>
+                <h3>RAPPORT DE SOUTENANCE</h3>
+                <p>Document complet présentant l'analyse, la conception et le développement du projet Zone 75.</p>
+                <a href="" class="btn btn-primary" download>
+                    Télécharger PDF
+                </a>
+            </div>
+
+            <div class="download-card">
+                <div class="download-icon">🎮</div>
+                <h3>TÉLÉCHARGER LE JEU</h3>
+                <p>Téléchargez Zone 75 et plongez dans les rues de Paris. Disponible pour Windows.</p>
+                <a href="" class="btn btn-primary" download>
+                    Télécharger le Jeu
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                ROCHERETOILE
+                <span>STUDIO</span>
+            </div>
+            <ul class="footer-links">
+                <li><a href="#projet">Projet</a></li>
+                <li><a href="#equipe">Équipe</a></li>
+                <li><a href="#ressources">Ressources</a></li>
+                <li><a href="#telechargements">Télécharger</a></li>
+            </ul>
+        </div>
+        <p class="copyright">
+            © 2026 RocherEtoile Studio — Zone 75 — Tous droits réservés<br>
+            Projet académique — Raphael, Dan, Faiz, Melvin, Hugo
+        </p>
+    </footer>
+</body>
+</html>
