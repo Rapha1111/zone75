@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuildMap — Éditeur de Bâtiments</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;700&display=swap');
+
+  :root {
+    --bg: #0d0f12;
+    --panel: #141720;
+    --panel2: #1a1e2b;
+    --border: #2a2f3e;
+    --accent: #f0a500;
+    --accent2: #00bfff;
+    --danger: #ff4d4d;
+    --success: #3ddc84;
+    --text: #cdd6f4;
+    --text-dim: #6e7a9a;
+    --grid: rgba(255,255,255,0.04);
+    --grid-major: rgba(255,255,255,0.09);
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Barlow', sans-serif;
+    --cond: 'Barlow Condensed', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--sans); }
+
+  /* === LAYOUT === */
+  #app { display: flex; height: 100vh; }
+
+  /* === SIDEBAR === */
+  #sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 10;
+  }
+
+  #logo {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #logo .mark {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    flex-shrink: 0;
+  }
+  #logo h1 { font-family: var(--cond); font-weight: 700; font-size: 18px; letter-spacing: 2px; text-transform: uppercase; color: #fff; }
+  #logo span { font-family: var(--mono); font-size: 10px; color: var(--text-dim); }
+
+  .sidebar-section {
+    border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
+  }
+  .sidebar-section h3 {
+    font-family: var(--cond);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  /* Buttons */
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    background: var(--panel2);
+    color: var(--text);
+    font-family: var(--sans); font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(240,165,0,0.06); }
+  .btn.active { border-color: var(--accent); color: var(--accent); background: rgba(240,165,0,0.12); }
+  .btn.accent { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+  .btn.accent:hover { background: #ffc53d; border-color: #ffc53d; }
+  .btn.danger { border-color: var(--danger); color: var(--danger); }
+  .btn.danger:hover { background: rgba(255,77,77,0.1); }
+  .btn.success { border-color: var(--success); color: var(--success); }
+  .btn.success:hover { background: rgba(61,220,132,0.1); }
+  .btn svg { flex-shrink: 0; }
+
+  .btn-row { display: flex; gap: 6px; }
+  .btn-row .btn { margin-bottom: 0; }
+
+  /* Tool buttons */
+  .tool-group { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .tool-btn {
+    padding: 10px 8px;
+    border: 1px solid var(--border);
+    background: var(--panel2);
+    color: var(--text-dim);
+    font-family: var(--mono); font-size: 11px;
+    cursor: pointer; border-radius: 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    transition: all 0.15s;
+  }
+  .tool-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .tool-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(240,165,0,0.08); }
+  .tool-btn svg { width: 18px; height: 18px; }
+
+  /* Form fields */
+  .field { margin-bottom: 8px; }
+  .field label { display: block; font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    background: #0d0f12;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono); font-size: 12px;
+    padding: 6px 9px;
+    border-radius: 3px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+  .field textarea { resize: vertical; min-height: 80px; }
+
+  /* Building list */
+  #building-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  #building-list::-webkit-scrollbar { width: 4px; }
+  #building-list::-webkit-scrollbar-track { background: transparent; }
+  #building-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .building-item {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: all 0.12s;
+    position: relative;
+  }
+  .building-item:hover { border-color: var(--accent2); }
+  .building-item.selected { border-color: var(--accent); background: rgba(240,165,0,0.06); }
+  .building-item .bi-name { font-family: var(--cond); font-size: 13px; font-weight: 600; color: #fff; }
+  .building-item .bi-coords { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+  .building-item .bi-del {
+    position: absolute; top: 6px; right: 8px;
+    background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 2px 4px;
+    font-size: 14px; line-height: 1;
+    transition: color 0.12s;
+  }
+  .building-item .bi-del:hover { color: var(--danger); }
+
+  #no-buildings { text-align: center; padding: 20px 10px; color: var(--text-dim); font-size: 12px; font-family: var(--mono); }
+
+  /* === CANVAS AREA === */
+  #canvas-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  #toolbar {
+    height: 42px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 14px; gap: 8px;
+    flex-shrink: 0;
+  }
+  .tb-sep { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+  .tb-btn {
+    padding: 4px 10px;
+    background: none; border: 1px solid transparent;
+    color: var(--text-dim); font-family: var(--mono); font-size: 11px;
+    cursor: pointer; border-radius: 3px; transition: all 0.12s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .tb-btn:hover { border-color: var(--border); color: var(--text); }
+  .tb-btn.active { border-color: var(--accent); color: var(--accent); }
+
+  #zoom-info { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+  #coords-info { font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+
+  #canvas-wrapper {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    cursor: crosshair;
+  }
+
+  #main-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    image-rendering: pixelated;
+  }
+
+  /* === RIGHT PANEL === */
+  #right-panel {
+    width: 240px;
+    min-width: 240px;
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  #props-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--cond); font-size: 11px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text-dim);
+  }
+
+  #props-body {
+    flex: 1;
+    padding: 14px 16px;
+    overflow-y: auto;
+  }
+  #props-body::-webkit-scrollbar { width: 4px; }
+  #props-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  #no-selection { color: var(--text-dim); font-size: 12px; font-family: var(--mono); text-align: center; padding: 20px 0; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 480px;
+    max-width: 95vw;
+    padding: 24px;
+    transform: translateY(10px);
+    transition: transform 0.2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal h2 { font-family: var(--cond); font-size: 16px; font-weight: 700; letter-spacing: 1px; margin-bottom: 16px; }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  .modal-footer .btn { width: auto; margin-bottom: 0; padding: 8px 20px; }
+
+  /* Status bar */
+  #status-bar {
+    height: 24px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 14px; gap: 16px;
+    font-family: var(--mono); font-size: 10px; color: var(--text-dim);
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); display: inline-block; margin-right: 4px; }
+
+  /* Tooltip for buildings on canvas */
+  #canvas-tooltip {
+    position: fixed;
+    background: var(--panel);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 500;
+    display: none;
+    white-space: nowrap;
+  }
+
+  /* Drag placement ghost */
+  #placement-hint {
+    position: absolute;
+    pointer-events: none;
+    border: 2px dashed var(--accent);
+    background: rgba(240,165,0,0.08);
+    z-index: 100;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div id="logo">
+      <div class="mark"></div>
+      <div>
+        <h1>BuildMap</h1>
+        <span>Game Level Editor</span>
+      </div>
+    </div>
+
+    <!-- TOOLS -->
+    <div class="sidebar-section">
+      <h3>Outils</h3>
+      <div class="tool-group">
+        <button class="tool-btn active" id="tool-select" onclick="setTool('select')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-7 1-4 7L5 3z"/></svg>
+          Sélection
+        </button>
+        <button class="tool-btn" id="tool-place" onclick="setTool('place')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
+          Placer
+        </button>
+        <button class="tool-btn" id="tool-move" onclick="setTool('move')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/><path d="M12 5l-3 3M12 5l3 3M12 19l-3-3M12 19l3-3M5 12l3-3M5 12l3 3M19 12l-3-3M19 12l-3 3"/></svg>
+          Déplacer
+        </button>
+        <button class="tool-btn" id="tool-pan" onclick="setTool('pan')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2"/><path d="M10 10.5a2 2 0 0 0-2-2 2 2 0 0 0-2 2V17a6 6 0 0 0 12 0v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/></svg>
+          Pan
+        </button>
+      </div>
+    </div>
+
+    <!-- NOUVEAU BATIMENT -->
+    <div class="sidebar-section">
+      <h3>Nouveau bâtiment</h3>
+      <div class="field">
+        <label>Nom du modèle</label>
+        <input type="text" id="new-model" placeholder="ex: Maison_01" />
+      </div>
+      <div class="field">
+        <label>Model num</label>
+        <input type="number" id="new-modelnum" value="0" min="0" />
+      </div>
+      <div class="field">
+        <label>Orientation Y (°)</label>
+        <input type="number" id="new-rot" value="0" step="45" />
+      </div>
+      <div class="field">
+        <label>Taille affichage (px)</label>
+        <input type="number" id="new-size" value="60" min="10" max="300" />
+      </div>
+    </div>
+
+    <!-- IMPORT/EXPORT -->
+    <div class="sidebar-section">
+      <h3>Import / Export</h3>
+      <button class="btn" onclick="openImportModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Importer (bat=[...])
+      </button>
+      <button class="btn success" onclick="exportData()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exporter
+      </button>
+      <button class="btn" onclick="document.getElementById('bg-input').click()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Importer fond
+      </button>
+      <input type="file" id="bg-input" accept="image/*" style="display:none" onchange="loadBackground(event)">
+    </div>
+
+    <!-- LISTE DES BATIMENTS -->
+    <div class="sidebar-section" style="border-bottom:none; padding-bottom:6px;">
+      <h3>Bâtiments (<span id="count">0</span>)</h3>
+    </div>
+    <div id="building-list">
+      <div id="no-buildings">Aucun bâtiment placé</div>
+    </div>
+
+    <div style="padding: 10px 16px; border-top: 1px solid var(--border);">
+      <button class="btn danger" onclick="clearAll()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Tout effacer
+      </button>
+    </div>
+  </div>
+
+  <!-- CANVAS AREA -->
+  <div id="canvas-area">
+    <div id="toolbar">
+      <button class="tb-btn" onclick="setZoom(zoom*1.25)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M8 11h6M11 8v6"/></svg>
+        Zoom +
+      </button>
+      <button class="tb-btn" onclick="setZoom(zoom*0.8)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M8 11h6"/></svg>
+        Zoom −
+      </button>
+      <button class="tb-btn" onclick="resetView()">Reset vue</button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" id="grid-toggle" onclick="toggleGrid()" class="active">Grille</button>
+      <button class="tb-btn" onclick="toggleSnap()" id="snap-toggle">Snap grille</button>
+      <div class="tb-sep"></div>
+      <span id="zoom-info">Zoom: 100%</span>
+      <div class="tb-sep"></div>
+      <span id="coords-info">X: 0.0 | Y: 0.0</span>
+    </div>
+
+    <div id="canvas-wrapper">
+      <canvas id="main-canvas"></canvas>
+      <div id="placement-hint"></div>
+    </div>
+
+    <div id="status-bar">
+      <span><span class="status-dot"></span>Prêt</span>
+      <span id="status-msg">Sélectionnez un outil et cliquez pour placer un bâtiment</span>
+      <span style="margin-left:auto;" id="sel-info"></span>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL (Properties) -->
+  <div id="right-panel">
+    <div id="props-header">Propriétés</div>
+    <div id="props-body">
+      <div id="no-selection">Sélectionnez un bâtiment pour éditer ses propriétés</div>
+      <div id="props-form" style="display:none">
+        <div class="field">
+          <label>Nom modèle</label>
+          <input type="text" id="prop-model" oninput="updateSelected('model')" />
+        </div>
+        <div class="field">
+          <label>Model num</label>
+          <input type="number" id="prop-modelnum" oninput="updateSelected('model_num')" min="0" />
+        </div>
+        <div class="field">
+          <label>X</label>
+          <input type="number" id="prop-x" step="0.5" oninput="updateSelected('x')" />
+        </div>
+        <div class="field">
+          <label>Y</label>
+          <input type="number" id="prop-y" step="0.5" oninput="updateSelected('y')" />
+        </div>
+        <div class="field">
+          <label>Z</label>
+          <input type="number" id="prop-z" step="0.5" oninput="updateSelected('z')" />
+        </div>
+        <div class="field">
+          <label>Orientation Y (°)</label>
+          <input type="number" id="prop-rot" step="45" oninput="updateSelected('rot')" />
+        </div>
+        <div class="field">
+          <label>Taille affichage (px)</label>
+          <input type="number" id="prop-size" step="5" oninput="updateSelected('size')" />
+        </div>
+        <div style="margin-top: 12px;">
+          <button class="btn danger" onclick="deleteSelected()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+            Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal">
+    <h2>📥 Importer des bâtiments</h2>
+    <p style="font-size:13px; color:var(--text-dim); margin-bottom:14px;">Collez votre liste Python ci-dessous (format <code style="color:var(--accent);">bat=[...]</code> ou juste <code style="color:var(--accent);">[...]</code>)</p>
+    <div class="field">
+      <textarea id="import-text" rows="8" placeholder="bat=[&#10;    (2.5,-1,0,0,2),&#10;    (10,0,0,0,0),&#10;    ...&#10;]"></textarea>
+    </div>
+    <div class="field">
+      <label>Taille d'affichage par défaut (px)</label>
+      <input type="number" id="import-size" value="60" min="10" max="300" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('import-modal')">Annuler</button>
+      <button class="btn accent" onclick="doImport()">Importer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="export-modal">
+  <div class="modal">
+    <h2>📤 Export Python</h2>
+    <div class="field">
+      <textarea id="export-text" rows="12" readonly style="font-size:12px;"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('export-modal')">Fermer</button>
+      <button class="btn accent" onclick="copyExport()">Copier</button>
+    </div>
+  </div>
+</div>
+
+<div id="canvas-tooltip"></div>
+
+<script>
+// === STATE ===
+const canvas = document.getElementById('main-canvas');
+const ctx = canvas.getContext('2d');
+const wrapper = document.getElementById('canvas-wrapper');
+
+let buildings = [];
+let selectedId = null;
+let tool = 'select';
+let zoom = 1;
+let panX = 0, panY = 0;
+let isPanning = false;
+let isMoving = false;
+let panStart = {x:0,y:0};
+let moveStart = {x:0,y:0};
+let bgImage = null;
+let showGrid = true;
+let snapToGrid = false;
+let snapSize = 1; // world units
+let nextId = 1;
+let isDraggingPlace = false;
+let dragPlaceStart = null;
+
+// Color palette per model_num
+const MODEL_COLORS = [
+  '#00bfff','#f0a500','#3ddc84','#ff4d4d','#c77dff',
+  '#ff9f1c','#2ec4b6','#e71d36','#ff9fd3','#8ecae6'
+];
+
+function modelColor(n) {
+  return MODEL_COLORS[n % MODEL_COLORS.length];
+}
+
+// === CANVAS RESIZE ===
+function resizeCanvas() {
+  canvas.width = wrapper.clientWidth;
+  canvas.height = wrapper.clientHeight;
+  render();
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// === COORDINATE TRANSFORMS ===
+function worldToScreen(wx, wy) {
+  return {
+    x: panX + wx * zoom,
+    y: panY - wy * zoom // Y inverted (world Y = forward/depth, screen Y = down)
+  };
+}
+function screenToWorld(sx, sy) {
+  return {
+    x: (sx - panX) / zoom,
+    y: -(sy - panY) / zoom
+  };
+}
+
+// === RENDER ===
+function render() {
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Background image
+  if (bgImage) {
+    ctx.save();
+    ctx.translate(panX, panY);
+    ctx.scale(zoom, zoom);
+    ctx.drawImage(bgImage, -bgImage.width/2, -bgImage.height/2);
+    ctx.restore();
+  }
+
+  // Grid
+  if (showGrid) drawGrid(W, H);
+
+  // Buildings
+  buildings.forEach(b => drawBuilding(b));
+
+  // Axes
+  drawAxes();
+}
+
+function drawGrid(W, H) {
+  const step = zoom * snapSize;
+  const step10 = zoom * snapSize * 10;
+
+  // Determine starting offsets
+  const startX = ((panX % step10) + step10) % step10;
+  const startY = ((panY % step10) + step10) % step10;
+
+  ctx.save();
+
+  // Minor grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 0.5;
+  for (let x = startX; x < W; x += step) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = startY; y < H; y += step) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  // Major grid (every 10 units)
+  ctx.strokeStyle = 'rgba(255,255,255,0.09)';
+  ctx.lineWidth = 1;
+  const mStartX = ((panX % step10) + step10) % step10;
+  const mStartY = ((panY % step10) + step10) % step10;
+  for (let x = mStartX; x < W; x += step10) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = mStartY; y < H; y += step10) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawAxes() {
+  const o = worldToScreen(0, 0);
+  ctx.save();
+  ctx.lineWidth = 1.5;
+
+  // X axis (rouge)
+  ctx.strokeStyle = '#ff4d4d66';
+  ctx.beginPath(); ctx.moveTo(0, o.y); ctx.lineTo(canvas.width, o.y); ctx.stroke();
+  // Y axis (vert)
+  ctx.strokeStyle = '#3ddc8466';
+  ctx.beginPath(); ctx.moveTo(o.x, 0); ctx.lineTo(o.x, canvas.height); ctx.stroke();
+
+  // Origin dot
+  ctx.fillStyle = '#ffffff55';
+  ctx.beginPath(); ctx.arc(o.x, o.y, 4, 0, Math.PI*2); ctx.fill();
+
+  ctx.restore();
+}
+
+function drawBuilding(b) {
+  const s = worldToScreen(b.x, b.y);
+  const sz = b.size * zoom / 50; // normalized display size
+  const half = b.size / 2 * zoom / 50;
+  const selected = b.id === selectedId;
+  const color = modelColor(b.model_num);
+
+  ctx.save();
+  ctx.translate(s.x, s.y);
+  ctx.rotate(-b.rot * Math.PI / 180);
+
+  // Shadow
+  ctx.shadowColor = color;
+  ctx.shadowBlur = selected ? 16 : 6;
+
+  // Fill
+  const alpha = selected ? 'cc' : '55';
+  ctx.fillStyle = color + alpha;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = selected ? 2 : 1.2;
+
+  const hw = b.size/2 * zoom / 50;
+  const hh = b.size/2 * zoom / 50;
+
+  ctx.beginPath();
+  ctx.rect(-hw, -hh, hw*2, hh*2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.shadowBlur = 0;
+
+  // Orientation arrow
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, -hh*0.6);
+  ctx.lineTo(0, hh*0.6);
+  ctx.moveTo(0, -hh*0.6);
+  ctx.lineTo(-hw*0.3, 0);
+  ctx.moveTo(0, -hh*0.6);
+  ctx.lineTo(hw*0.3, 0);
+  ctx.stroke();
+
+  // Label
+  ctx.rotate(b.rot * Math.PI / 180); // un-rotate for text
+  const label = b.model || `M${b.model_num}`;
+  const fontSize = Math.max(9, Math.min(14, zoom * 1.2));
+  ctx.font = `600 ${fontSize}px 'Barlow Condensed', sans-serif`;
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = '#000';
+  ctx.shadowBlur = 4;
+  ctx.fillText(label, 0, 0);
+
+  // Coords below
+  const coordsFontSize = Math.max(8, Math.min(11, zoom * 0.9));
+  ctx.font = `${coordsFontSize}px 'Share Tech Mono', monospace`;
+  ctx.fillStyle = color;
+  ctx.shadowBlur = 3;
+  ctx.fillText(`(${b.x},${b.y})`, 0, hh + coordsFontSize + 2);
+
+  ctx.restore();
+
+  // Selection ring
+  if (selected) {
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    const ring = Math.max(hw, hh) * 1.4 * (50 / zoom) * zoom / 50 + 6;
+    ctx.beginPath();
+    ctx.arc(0, 0, ring, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+}
+
+// === TOOL HANDLING ===
+function setTool(t) {
+  tool = t;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tool-'+t).classList.add('active');
+  const cursors = { select: 'default', place: 'crosshair', move: 'move', pan: 'grab' };
+  wrapper.style.cursor = cursors[t] || 'default';
+  setStatus(t === 'place' ? 'Cliquez ou glissez pour placer un bâtiment' :
+            t === 'move' ? 'Cliquez sur un bâtiment et glissez pour le déplacer' :
+            t === 'pan' ? 'Glissez pour déplacer la vue' :
+            'Cliquez sur un bâtiment pour le sélectionner');
+}
+
+// === MOUSE EVENTS ===
+let lastMouse = {x:0, y:0};
+
+wrapper.addEventListener('mousedown', e => {
+  const rect = wrapper.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  lastMouse = {x: mx, y: my};
+
+  if (tool === 'pan' || e.button === 1 || (e.button === 0 && e.altKey)) {
+    isPanning = true;
+    panStart = {x: mx - panX, y: my - panY};
+    wrapper.style.cursor = 'grabbing';
+    return;
+  }
+
+  if (tool === 'place' && e.button === 0) {
+    isDraggingPlace = true;
+    dragPlaceStart = screenToWorld(mx, my);
+    return;
+  }
+
+  if (tool === 'select' || tool === 'move') {
+    const hit = hitTest(mx, my);
+    if (hit !== null) {
+      selectBuilding(hit);
+      if (tool === 'move') {
+        isMoving = true;
+        const b = buildings.find(b => b.id === hit);
+        moveStart = { wx: b.x, wy: b.y, sx: mx, sy: my };
+      }
+    } else {
+      selectBuilding(null);
+    }
+  }
+});
+
+wrapper.addEventListener('mousemove', e => {
+  const rect = wrapper.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const wp = screenToWorld(mx, my);
+
+  // Coords display
+  document.getElementById('coords-info').textContent =
+    `X: ${wp.x.toFixed(2)} | Y: ${wp.y.toFixed(2)}`;
+
+  if (isPanning) {
+    panX = mx - panStart.x;
+    panY = my - panStart.y;
+    render();
+    return;
+  }
+
+  if (isMoving && selectedId !== null) {
+    const b = buildings.find(b => b.id === selectedId);
+    if (b) {
+      let nx = moveStart.wx + (mx - moveStart.sx) / zoom;
+      let ny = moveStart.wy - (my - moveStart.sy) / zoom;
+      if (snapToGrid) { nx = Math.round(nx/snapSize)*snapSize; ny = Math.round(ny/snapSize)*snapSize; }
+      b.x = parseFloat(nx.toFixed(2));
+      b.y = parseFloat(ny.toFixed(2));
+      refreshProps();
+      refreshList();
+      render();
+    }
+    return;
+  }
+
+  if (isDraggingPlace && dragPlaceStart) {
+    // show placement hint
+    const hint = document.getElementById('placement-hint');
+    const s1 = worldToScreen(dragPlaceStart.x, dragPlaceStart.y);
+    const s2 = {x: mx, y: my};
+    const x = Math.min(s1.x, s2.x);
+    const y = Math.min(s1.y, s2.y);
+    const w = Math.abs(s2.x - s1.x);
+    const h = Math.abs(s2.y - s1.y);
+    hint.style.display = 'block';
+    hint.style.left = x + 'px';
+    hint.style.top = y + 'px';
+    hint.style.width = w + 'px';
+    hint.style.height = h + 'px';
+    return;
+  }
+
+  // Hover tooltip
+  const hit = hitTest(mx, my);
+  const tooltip = document.getElementById('canvas-tooltip');
+  if (hit !== null) {
+    const b = buildings.find(b => b.id === hit);
+    tooltip.style.display = 'block';
+    tooltip.style.left = (e.clientX + 14) + 'px';
+    tooltip.style.top = (e.clientY - 10) + 'px';
+    tooltip.innerHTML = `<b>${b.model || 'Unnamed'}</b> M${b.model_num}<br>x=${b.x} y=${b.y} z=${b.z} rot=${b.rot}°`;
+  } else {
+    tooltip.style.display = 'none';
+  }
+});
+
+wrapper.addEventListener('mouseup', e => {
+  const rect = wrapper.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  if (isPanning) {
+    isPanning = false;
+    wrapper.style.cursor = tool === 'pan' ? 'grab' : (tool === 'place' ? 'crosshair' : (tool === 'move' ? 'move' : 'default'));
+    return;
+  }
+
+  if (isMoving) {
+    isMoving = false;
+    return;
+  }
+
+  if (isDraggingPlace && dragPlaceStart) {
+    isDraggingPlace = false;
+    document.getElementById('placement-hint').style.display = 'none';
+    const wp = screenToWorld(mx, my);
+    let cx = (dragPlaceStart.x + wp.x) / 2;
+    let cy = (dragPlaceStart.y + wp.y) / 2;
+    let sz = Math.max(
+      Math.abs(mx - worldToScreen(dragPlaceStart.x, dragPlaceStart.y).x),
+      Math.abs(my - worldToScreen(dragPlaceStart.x, dragPlaceStart.y).y),
+      20
+    );
+    if (snapToGrid) { cx = Math.round(cx/snapSize)*snapSize; cy = Math.round(cy/snapSize)*snapSize; }
+    addBuilding(cx, cy, sz);
+    dragPlaceStart = null;
+  }
+});
+
+wrapper.addEventListener('mouseleave', () => {
+  document.getElementById('canvas-tooltip').style.display = 'none';
+  if (isDraggingPlace) {
+    isDraggingPlace = false;
+    document.getElementById('placement-hint').style.display = 'none';
+    dragPlaceStart = null;
+  }
+});
+
+// Zoom with wheel
+wrapper.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = wrapper.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const factor = e.deltaY < 0 ? 1.1 : 0.91;
+  // Zoom toward mouse
+  panX = mx - (mx - panX) * factor;
+  panY = my - (my - panY) * factor;
+  zoom *= factor;
+  zoom = Math.max(0.05, Math.min(50, zoom));
+  document.getElementById('zoom-info').textContent = `Zoom: ${(zoom*100).toFixed(0)}%`;
+  render();
+}, {passive: false});
+
+// Middle click pan
+wrapper.addEventListener('contextmenu', e => e.preventDefault());
+
+// === HIT TEST ===
+function hitTest(sx, sy) {
+  for (let i = buildings.length - 1; i >= 0; i--) {
+    const b = buildings[i];
+    const s = worldToScreen(b.x, b.y);
+    const hw = b.size/2 * zoom / 50;
+    const hh = b.size/2 * zoom / 50;
+    // Simple circle test (accounts for rotation loosely)
+    const r = Math.max(hw, hh) * 1.1;
+    const dx = sx - s.x, dy = sy - s.y;
+    if (dx*dx + dy*dy <= r*r) return b.id;
+  }
+  return null;
+}
+
+// === BUILDINGS ===
+function addBuilding(wx, wy, screenSz) {
+  const model = document.getElementById('new-model').value.trim() || `Building_${nextId}`;
+  const modelnum = parseInt(document.getElementById('new-modelnum').value) || 0;
+  const rot = parseFloat(document.getElementById('new-rot').value) || 0;
+  const size = parseFloat(document.getElementById('new-size').value) || 60;
+  let x = parseFloat(wx.toFixed(2));
+  let y = parseFloat(wy.toFixed(2));
+  const b = { id: nextId++, model, model_num: modelnum, x, y, z: 0, rot, size };
+  buildings.push(b);
+  selectBuilding(b.id);
+  refreshList();
+  render();
+  setStatus(`Bâtiment "${model}" placé en (${x}, ${y})`);
+}
+
+function selectBuilding(id) {
+  selectedId = id;
+  refreshProps();
+  refreshList();
+  const info = document.getElementById('sel-info');
+  if (id !== null) {
+    const b = buildings.find(b => b.id === id);
+    info.textContent = b ? `Sélectionné: ${b.model} (${b.x}, ${b.y})` : '';
+  } else {
+    info.textContent = '';
+  }
+  render();
+}
+
+function deleteSelected() {
+  if (selectedId === null) return;
+  buildings = buildings.filter(b => b.id !== selectedId);
+  selectedId = null;
+  refreshProps();
+  refreshList();
+  render();
+}
+
+function clearAll() {
+  if (!confirm('Effacer tous les bâtiments ?')) return;
+  buildings = [];
+  selectedId = null;
+  refreshProps();
+  refreshList();
+  render();
+}
+
+function updateSelected(field) {
+  if (selectedId === null) return;
+  const b = buildings.find(b => b.id === selectedId);
+  if (!b) return;
+  const vals = {
+    model: document.getElementById('prop-model').value,
+    model_num: parseInt(document.getElementById('prop-modelnum').value)||0,
+    x: parseFloat(document.getElementById('prop-x').value)||0,
+    y: parseFloat(document.getElementById('prop-y').value)||0,
+    z: parseFloat(document.getElementById('prop-z').value)||0,
+    rot: parseFloat(document.getElementById('prop-rot').value)||0,
+    size: parseFloat(document.getElementById('prop-size').value)||60,
+  };
+  Object.assign(b, vals);
+  refreshList();
+  render();
+}
+
+function refreshProps() {
+  const form = document.getElementById('props-form');
+  const nosel = document.getElementById('no-selection');
+  if (selectedId === null) {
+    form.style.display = 'none';
+    nosel.style.display = 'block';
+    return;
+  }
+  const b = buildings.find(b => b.id === selectedId);
+  if (!b) return;
+  nosel.style.display = 'none';
+  form.style.display = 'block';
+  document.getElementById('prop-model').value = b.model;
+  document.getElementById('prop-modelnum').value = b.model_num;
+  document.getElementById('prop-x').value = b.x;
+  document.getElementById('prop-y').value = b.y;
+  document.getElementById('prop-z').value = b.z;
+  document.getElementById('prop-rot').value = b.rot;
+  document.getElementById('prop-size').value = b.size;
+}
+
+function refreshList() {
+  const list = document.getElementById('building-list');
+  const noB = document.getElementById('no-buildings');
+  document.getElementById('count').textContent = buildings.length;
+  if (buildings.length === 0) {
+    noB.style.display = 'block';
+    // clear items
+    Array.from(list.querySelectorAll('.building-item')).forEach(el => el.remove());
+    return;
+  }
+  noB.style.display = 'none';
+  // Rebuild
+  Array.from(list.querySelectorAll('.building-item')).forEach(el => el.remove());
+  buildings.forEach(b => {
+    const div = document.createElement('div');
+    div.className = 'building-item' + (b.id === selectedId ? ' selected' : '');
+    div.innerHTML = `
+      <div class="bi-name" style="color:${modelColor(b.model_num)}">${b.model || 'Unnamed'}</div>
+      <div class="bi-coords">M${b.model_num} · (${b.x}, ${b.y}, ${b.z}) rot:${b.rot}°</div>
+      <button class="bi-del" onclick="event.stopPropagation(); removeBuilding(${b.id})">×</button>
+    `;
+    div.addEventListener('click', () => {
+      selectBuilding(b.id);
+      // Center view on building
+      panX = canvas.width/2 - b.x * zoom;
+      panY = canvas.height/2 + b.y * zoom;
+      render();
+    });
+    list.appendChild(div);
+  });
+}
+
+function removeBuilding(id) {
+  buildings = buildings.filter(b => b.id !== id);
+  if (selectedId === id) { selectedId = null; refreshProps(); }
+  refreshList();
+  render();
+}
+
+// === ZOOM / VIEW ===
+function setZoom(z) {
+  zoom = Math.max(0.05, Math.min(50, z));
+  document.getElementById('zoom-info').textContent = `Zoom: ${(zoom*100).toFixed(0)}%`;
+  render();
+}
+
+function resetView() {
+  zoom = 1;
+  panX = canvas.width / 2;
+  panY = canvas.height / 2;
+  document.getElementById('zoom-info').textContent = 'Zoom: 100%';
+  render();
+}
+
+function toggleGrid() {
+  showGrid = !showGrid;
+  document.getElementById('grid-toggle').classList.toggle('active', showGrid);
+  render();
+}
+
+function toggleSnap() {
+  snapToGrid = !snapToGrid;
+  document.getElementById('snap-toggle').classList.toggle('active', snapToGrid);
+  setStatus(snapToGrid ? 'Snap grille activé (unité: ' + snapSize + ')' : 'Snap grille désactivé');
+}
+
+// === BACKGROUND ===
+function loadBackground(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => { bgImage = img; render(); };
+  img.src = url;
+}
+
+// === IMPORT ===
+function openImportModal() {
+  document.getElementById('import-modal').classList.add('open');
+}
+
+function doImport() {
+  const raw = document.getElementById('import-text').value.trim();
+  const defSize = parseFloat(document.getElementById('import-size').value) || 60;
+  if (!raw) return;
+
+  // Parse tuples: support bat=[...] or just [...]
+  // Extract all (x,y,z,rot,model_num) tuples
+  const tupleRe = /\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)/g;
+  let match;
+  let count = 0;
+  while ((match = tupleRe.exec(raw)) !== null) {
+    const [, x, y, z, rot, model_num] = match.map(Number);
+    buildings.push({
+      id: nextId++,
+      model: `Building_${nextId-1}`,
+      model_num: parseInt(model_num),
+      x: x, y: y, z: z,
+      rot: rot,
+      size: defSize
+    });
+    count++;
+  }
+
+  refreshList();
+  render();
+  closeModal('import-modal');
+  setStatus(`${count} bâtiment(s) importé(s)`);
+  if (buildings.length > 0) fitView();
+}
+
+function fitView() {
+  if (buildings.length === 0) return;
+  const xs = buildings.map(b => b.x);
+  const ys = buildings.map(b => b.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const rangeX = maxX - minX + 20;
+  const rangeY = maxY - minY + 20;
+  const W = canvas.width, H = canvas.height;
+  zoom = Math.min(W / rangeX, H / rangeY) * 0.7;
+  zoom = Math.max(0.1, Math.min(20, zoom));
+  panX = W/2 - ((minX+maxX)/2) * zoom;
+  panY = H/2 + ((minY+maxY)/2) * zoom;
+  document.getElementById('zoom-info').textContent = `Zoom: ${(zoom*100).toFixed(0)}%`;
+  render();
+}
+
+// === EXPORT ===
+function exportData() {
+  const lines = buildings.map(b =>
+    `    (${b.x},${b.y},${b.z},${b.rot},${b.model_num}),  # ${b.model}`
+  );
+  const out = `bat=[\n${lines.join('\n')}\n]`;
+  document.getElementById('export-text').value = out;
+  document.getElementById('export-modal').classList.add('open');
+}
+
+function copyExport() {
+  const t = document.getElementById('export-text');
+  t.select();
+  document.execCommand('copy');
+  setStatus('Code copié dans le presse-papier !');
+}
+
+// === MODAL ===
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// === STATUS ===
+function setStatus(msg) {
+  document.getElementById('status-msg').textContent = msg;
+}
+
+// === KEYBOARD ===
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'Delete' || e.key === 'Backspace') deleteSelected();
+  if (e.key === 's') setTool('select');
+  if (e.key === 'p') setTool('place');
+  if (e.key === 'm') setTool('move');
+  if (e.key === 'h') setTool('pan');
+  if (e.key === 'g') toggleGrid();
+  if (e.key === 'f') fitView();
+  if (e.key === 'Escape') selectBuilding(null);
+  if (e.key === '+' || e.key === '=') setZoom(zoom * 1.2);
+  if (e.key === '-') setZoom(zoom * 0.83);
+  if (e.key === '0') resetView();
+});
+
+// === INIT ===
+resetView();
+setStatus('Bienvenue — sélectionnez l\'outil "Placer" et cliquez sur la carte pour ajouter un bâtiment');
+</script>
+</body>
+</html>
